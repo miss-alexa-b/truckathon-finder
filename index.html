@@ -21,7 +21,7 @@
 
         .panel {
             width: 250px;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(11, 72, 76, 1);
             color: white;
             padding: 20px;
             box-sizing: border-box;
@@ -50,7 +50,6 @@
             background-color: rgba(255, 255, 255, 0.5);
         }
 
-        /* Canvas Styles */
         .canvas-container {
             flex-grow: 1;
             position: relative;
@@ -63,7 +62,6 @@
         #canvas {
             width: 100%;
             height: 100%;
-            /* background-image: url('resources/canvas.png'); */
             background-size: contain;
             background-position: center;
             border: none;
@@ -75,6 +73,12 @@
             background-color: rgba(255, 0, 0, 0.5);
         }
 
+        #search {
+            padding: 7px;
+            margin-bottom: 10px;
+            width: -webkit-fill-available;
+        }
+
     </style>
 </head>
 <body>
@@ -84,6 +88,8 @@
     
     <div class="panel" style="height: inherit;">
         <span id="total-items"></span>
+        <div>
+        <input id="search" placeholder="Search..." type="text"></div>
         <div class="panel-internal" id="panel">
         <!-- Rows will be dynamically inserted here -->
         </div>
@@ -97,6 +103,7 @@
 </div>
 
 <script>
+    const get = (query, dom = document) => [...dom.querySelectorAll(query)];
     const panel = document.getElementById('panel');
     const total = document.getElementById('total-items');
     const canvas = document.getElementById('canvas');
@@ -303,6 +310,12 @@
     let scaleFactorX = 1, scaleFactorY=1, scaleFactor=1, pixelFactorX = 1, pixelFactorY = 1;
     let pixelWidth = 404, pixelHeight = 275;
 
+    const searchInput = get("#search")[0];
+    searchInput.addEventListener("input", () => {
+        const searchQuery =  searchInput.value;
+        populatePanel(searchQuery)
+    });
+
     function resizeCanvas() {
         canvas.width = window.innerWidth - document.querySelector('.panel').offsetWidth;
         canvas.height = window.innerHeight;
@@ -324,7 +337,7 @@
         }
     }
 
-    function populatePanel() {
+    function populatePanel(search = "") {
         dataset.highlights.sort((a, b) => {
             if (a.top !== b.top) {
                 return a.top - b.top;
@@ -332,7 +345,17 @@
             return a.left - b.left;
         })
 
-        dataset.highlights.forEach((row, i) => {
+        itemList = dataset.highlights
+
+        if (search.length > 0){
+            itemList = dataset.highlights.filter((record) => {
+                return record.label.toLowerCase().includes(search.toLowerCase())
+            })
+        }
+
+        panel.innerHTML = "";
+
+        itemList.forEach((row, i) => {
             const rowElement = document.createElement('div');
             rowElement.classList.add('row');
             rowElement.textContent = row.label;
@@ -351,9 +374,12 @@
             });
         });
 
-        const rowElement = document.createElement('div');
-        rowElement.textContent = `There are a total of ${dataset.highlights.length} items on the canvas`;
-        total.appendChild(rowElement);
+        
+        if (total.children.length === 0){
+            const rowElement = document.createElement('div');
+            rowElement.textContent = `There are a total of ${dataset.highlights.length} items on the canvas`;
+            total.appendChild(rowElement);
+        }
     }
 
     function calculateScaleFactor() {
