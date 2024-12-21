@@ -71,7 +71,9 @@
 
 <div class="container">
     <!-- Left Panel -->
+    
     <div class="panel" id="panel">
+        <div><span id="total-items"></span></div>
         <!-- Rows will be dynamically inserted here -->
     </div>
 
@@ -83,6 +85,7 @@
 
 <script>
     const panel = document.getElementById('panel');
+    const total = document.getElementById('total-items');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     let dataset = { "highlights": [
@@ -187,6 +190,17 @@
         { "left": 24, "top": 251, "width": 49, "height": 274, "label": "Hearthstone" },
         { "left": 51, "top": 238, "width": 75, "height": 274, "label": "Excalibur (didn't want you to miss this one)" },
         { "left": 69, "top": 201, "width": 97, "height": 222, "label": "Issac" },
+        { "left": 91, "top": 107, "width": 108, "height": 210, "label": "Startrek" },
+        { "left": 71, "top": 223, "width": 99, "height": 253, "label": "Little misfortune" },
+        { "left": 95, "top": 218, "width": 134, "height": 245, "label": "Yikes forever" },
+        { "left": 80, "top": 245, "width": 130, "height": 272, "label": "Scratch" },
+        { "left": 126, "top": 217, "width": 138, "height": 228, "label": "Josh's N7 mug" },
+        { "left": 135, "top": 217, "width": 154, "height": 237, "label": "Nessie" },
+        { "left": 127, "top": 258, "width": 157, "height": 274, "label": "Paddling pool" },
+        { "left": 101, "top": 155, "width": 141, "height": 187, "label": "Pisspriest" },
+        { "left": 141, "top": 153, "width": 175, "height": 177, "label": "Jorji" },
+        { "left": 176, "top": 168, "width": 185, "height": 188, "label": "Keith the cactus" },
+        { "left": 181, "top": 153, "width": 212, "height": 175, "label": "Left/Right gang" },
     ]};
     let image = new Image();
     let scaleFactorX = 1, scaleFactorY=1, scaleFactor=1, pixelFactorX = 1, pixelFactorY = 1;
@@ -244,6 +258,10 @@
                 clearHighlight();
             });
         });
+
+        const rowElement = document.createElement('div');
+        rowElement.textContent = `There are a total of ${dataset.highlights.length} items on the canvas`;
+        total.appendChild(rowElement);
     }
 
     // Function to calculate the scale factor based on image and canvas size
