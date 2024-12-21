@@ -16,17 +16,27 @@
             display: flex;
             height: 100%;
             width: 100%;
+            align-items: center;
         }
 
-        /* Left Panel Styles */
         .panel {
             width: 250px;
             background-color: rgba(0, 0, 0, 0.5);
             color: white;
             padding: 20px;
             box-sizing: border-box;
-            overflow-y: auto;
             position: relative;
+            height: inherit;
+        }
+
+        .panel span {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .panel-internal {
+            overflow-y: auto;
+            height: calc(100vh - 170px);
         }
 
         .row {
@@ -72,10 +82,13 @@
 <div class="container">
     <!-- Left Panel -->
     
-    <div class="panel" id="panel">
-        <div><span id="total-items"></span></div>
+    <div class="panel" style="height: inherit;">
+        <span id="total-items"></span>
+        <div class="panel-internal" id="panel">
         <!-- Rows will be dynamically inserted here -->
-    </div>
+        </div>
+        <span><div>Items orders from top left to bottom right</div></span>
+</div>
 
     <!-- Canvas Area -->
     <div class="canvas-container">
