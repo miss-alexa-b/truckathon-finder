@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truck-a-thon canvas searcher</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Left Panel Styles */
+        .panel {
+            width: 250px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .row {
+            padding: 15px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .row:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Canvas Styles */
+        .canvas-container {
+            flex-grow: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow: hidden;
+        }
+
+        #canvas {
+            width: 100%;
+            height: 100%;
+            /* background-image: url('resources/canvas.png'); */
+            background-size: contain;
+            background-position: center;
+            border: none;
+            background-repeat: no-repeat;
+        }
+
+        .highlight {
+            position: absolute;
+            background-color: rgba(255, 0, 0, 0.5);
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Left Panel -->
+    <div class="panel" id="panel">
+        <!-- Rows will be dynamically inserted here -->
+    </div>
+
+    <!-- Canvas Area -->
+    <div class="canvas-container">
+        <canvas id="canvas"></canvas>
+    </div>
+</div>
+
+<script>
+    const panel = document.getElementById('panel');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let dataset = { "highlights": [
+        { "top": 0, "left": 0, "width": 13, "height": 12, "label": "CCTV" },
+        { "top": 0, "left": 0, "width": 29, "height": 29, "label": "Illumiati" },
+        { "left": 18, "top": 0, "width": 26, "height": 11, "label": "UFO" },
+        { "left": 23, "top": 3, "width": 43, "height": 43, "label": "Deadpool" },
+        { "left": 41, "top": 0, "width": 58, "height": 25, "label": "Joker 1" },
+        { "left": 41, "top": 10, "width": 82, "height": 45, "label": "Wolverine" },
+        { "left": 59, "top": 0, "width": 84, "height": 23, "label": "Joker 2" },
+        { "left": 80, "top": 0, "width": 91, "height": 11, "label": "???" },
+        { "left": 91, "top": 0, "width": 107, "height": 16, "label": "???" },
+        { "left": 19, "top": 31, "width": 25, "height": 37, "label": "Ultra ball" },
+        { "left": 10, "top": 23, "width": 39, "height": 29, "label": "Amongus" },
+        { "left": 272, "top": 156, "width": 301, "height": 193, "label": "Randy Random" },
+        { "left": 192, "top": 0, "width": 231, "height": 34, "label": "Europe" },
+        { "left": 229, "top": 0, "width": 255, "height": 25, "label": "America" },
+        { "left": 253, "top": 0, "width": 296, "height": 32, "label": "Asia & Oceania" },
+        { "left": 253, "top": 21, "width": 276, "height": 41, "label": "Africa" },
+        { "left": 191, "top": 33, "width": 219, "height": 62, "label": "Drama time" },
+        { "left": 216, "top": 36, "width": 230, "height": 49, "label": "Brofist" },
+        { "left": 232, "top": 26, "width": 252, "height": 44, "label": "Solar eclipse" },
+        { "left": 250, "top": 42, "width": 287, "height": 64, "label": "Bossman" },
+        { "left": 207, "top": 62, "width": 224, "height": 84, "label": "Peans" },
+        { "left": 221, "top": 52, "width": 254, "height": 81, "label": "Miku" },
+        { "left": 277, "top": 33, "width": 289, "height": 41, "label": "Sad egg by Mike" },
+        { "left": 81, "top": 0, "width": 182, "height": 44, "label": "Rat pride" },
+        { "left": 122, "top": 10, "width": 165, "height": 18, "label": "Clowns" },
+        { "left": 175, "top": 28, "width": 190, "height": 47, "label": "Illegal can" },
+        { "left": 102, "top": 45, "width": 173, "height": 51, "label": "Pacifist gaming" },
+        { "left": 165, "top": 0, "width": 193, "height": 33, "label": "Thank goodness you're here" },
+        { "left": 0, "top": 24, "width": 20, "height": 49, "label": "Mario w/ beer" },
+        { "left": 48, "top": 35, "width": 55, "height": 42, "label": "Pikachu" },
+        { "left": 330, "top": 0, "width": 381, "height": 8, "label": "Exit 8" },
+    ]};
+    let image = new Image();
+    let scaleFactorX = 1, scaleFactorY=1, scaleFactor=1, pixelFactorX = 1, pixelFactorY = 1;
+    let pixelWidth = 404, pixelHeight = 275;
+
+    // Function to adjust canvas size on window resize
+    function resizeCanvas() {
+        canvas.width = window.innerWidth - document.querySelector('.panel').offsetWidth;  // Subtract panel width
+        canvas.height = window.innerHeight;  // Set height to full window height
+        drawHighlights(); // Redraw highlights after resize
+        calculateScaleFactor();
+    }
+
+    // Function to load the image and the dataset from JSON file
+    async function loadDataset() {
+        try {
+            // Populate the left panel rows based on the dataset
+            populatePanel();
+
+            image.onload = () => {
+                // Once image is loaded, calculate scale factor
+                calculateScaleFactor();
+                drawHighlights();
+            };
+            image.src = 'resources/canvas.png';
+        } catch (error) {
+            console.error('Error loading dataset:', error);
+        }
+    }
+
+    // Populate the panel with rows
+    function populatePanel() {
+        dataset.highlights.sort((a, b) => {
+            if (a.top !== b.top) {
+                return a.top - b.top;
+            }
+            return a.left - b.left;
+        })
+        dataset.highlights.forEach((row, i) => {
+            const rowElement = document.createElement('div');
+            rowElement.classList.add('row');
+            rowElement.textContent = row.label;
+            rowElement.setAttribute('data-index', i);
+            panel.appendChild(rowElement);
+        });
+
+        // Add hover events to rows
+        const rows = document.querySelectorAll('.row');
+        rows.forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                const index = row.getAttribute('data-index');
+                highlightRow(index);
+            });
+            row.addEventListener('mouseleave', () => {
+                clearHighlight();
+            });
+        });
+    }
+
+    // Function to calculate the scale factor based on image and canvas size
+    function calculateScaleFactor() {
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const imageWidth = image.width;
+        const imageHeight = image.height;
+
+        // Calculate the scaling factors for both dimensions
+        scaleFactorX = canvasWidth / imageWidth;
+        scaleFactorY = canvasHeight / imageHeight;
+
+        scaleFactor = scaleFactorX < scaleFactorY ? scaleFactorX : scaleFactorY;
+        
+        pixelFactorX = (imageWidth*scaleFactor) / pixelWidth;
+        pixelFactorY = (imageHeight*scaleFactor) / pixelHeight;
+    }
+
+    // Function to draw the highlights on the canvas
+    function drawHighlights() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);  // Clear the canvas before redrawing
+        ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width*scaleFactor, image.height*scaleFactor)
+
+    }
+
+    // Highlight row on hover
+    function highlightRow(index) {
+        const highlight = dataset.highlights[index];//.find(data => data.index == index);
+        if (highlight) {
+            const { top, left, width, height } = highlight;
+            const scaledTop = top * pixelFactorY;
+            const scaledLeft = left * pixelFactorX;
+            const scaledWidth = (width-left+1) * pixelFactorX;
+            const scaledHeight = (height-top+1) * pixelFactorY;
+
+            console.log("top", scaledTop);
+            console.log("left", scaledLeft);
+            console.log("width", scaledWidth);
+            console.log("height", scaledHeight);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear existing highlights
+            ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width*scaleFactor, image.height*scaleFactor)
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+            ctx.fillRect(scaledLeft, scaledTop, scaledWidth, scaledHeight); // Draw the highlighted area
+        }
+    }
+
+    // Clear the highlights when the mouse leaves the row
+    function clearHighlight() {
+        drawHighlights(); // Redraw all the highlights
+    }
+
+    // Initial resizing of the canvas
+    window.addEventListener('resize', resizeCanvas);
+
+    // Load dataset and initialize the page
+    window.addEventListener('load', () => {
+        loadDataset();
+        resizeCanvas();
+    });
+
+</script>
+
+</body>
+</html>

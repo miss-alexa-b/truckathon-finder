@@ -1,0 +1,17 @@
+{
+    "rows": [
+      { "index": 0, "label": "Row 1" },
+      { "index": 1, "label": "Row 2" },
+      { "index": 2, "label": "Row 3" },
+      { "index": 3, "label": "Row 4" },
+      { "index": 4, "label": "Row 5" }
+    ],
+    "highlights": [
+      { "index": 0, "top": 50, "left": 0, "width": 800, "height": 100 },
+      { "index": 1, "top": 150, "left": 0, "width": 800, "height": 100 },
+      { "index": 2, "top": 250, "left": 0, "width": 800, "height": 100 },
+      { "index": 3, "top": 350, "left": 0, "width": 800, "height": 100 },
+      { "index": 4, "top": 450, "left": 0, "width": 800, "height": 100 }
+    ]
+  }
+  
