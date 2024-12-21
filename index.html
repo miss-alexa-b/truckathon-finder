@@ -224,28 +224,26 @@
         { "left": 188, "top": 248, "width": 207, "height": 274, "label": "Red mage" },
         { "left": 205, "top": 249, "width": 222, "height": 274, "label": "Black mage / Vivi" },
         { "left": 222, "top": 253, "width": 271, "height": 274, "label": "Tankless & poor" },
+        { "left": 296, "top": 158, "width": 208, "height": 163, "label": "Ramen cup" },
+        { "left": 318, "top": 176, "width": 340, "height": 202, "label": "Kweh" },
     ]};
 
     let image = new Image();
     let scaleFactorX = 1, scaleFactorY=1, scaleFactor=1, pixelFactorX = 1, pixelFactorY = 1;
     let pixelWidth = 404, pixelHeight = 275;
 
-    // Function to adjust canvas size on window resize
     function resizeCanvas() {
-        canvas.width = window.innerWidth - document.querySelector('.panel').offsetWidth;  // Subtract panel width
-        canvas.height = window.innerHeight;  // Set height to full window height
-        drawHighlights(); // Redraw highlights after resize
+        canvas.width = window.innerWidth - document.querySelector('.panel').offsetWidth;
+        canvas.height = window.innerHeight;
+        drawHighlights();
         calculateScaleFactor();
     }
 
-    // Function to load the image and the dataset from JSON file
     async function loadDataset() {
         try {
-            // Populate the left panel rows based on the dataset
             populatePanel();
 
             image.onload = () => {
-                // Once image is loaded, calculate scale factor
                 calculateScaleFactor();
                 drawHighlights();
             };
@@ -255,7 +253,6 @@
         }
     }
 
-    // Populate the panel with rows
     function populatePanel() {
         dataset.highlights.sort((a, b) => {
             if (a.top !== b.top) {
@@ -263,6 +260,7 @@
             }
             return a.left - b.left;
         })
+
         dataset.highlights.forEach((row, i) => {
             const rowElement = document.createElement('div');
             rowElement.classList.add('row');
@@ -271,7 +269,6 @@
             panel.appendChild(rowElement);
         });
 
-        // Add hover events to rows
         const rows = document.querySelectorAll('.row');
         rows.forEach(row => {
             row.addEventListener('mouseenter', () => {
@@ -288,14 +285,12 @@
         total.appendChild(rowElement);
     }
 
-    // Function to calculate the scale factor based on image and canvas size
     function calculateScaleFactor() {
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
         const imageWidth = image.width;
         const imageHeight = image.height;
-
-        // Calculate the scaling factors for both dimensions
+        
         scaleFactorX = canvasWidth / imageWidth;
         scaleFactorY = canvasHeight / imageHeight;
 
@@ -305,39 +300,32 @@
         pixelFactorY = (imageHeight*scaleFactor) / pixelHeight;
     }
 
-    // Function to draw the highlights on the canvas
     function drawHighlights() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);  // Clear the canvas before redrawing
-        ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width*scaleFactor, image.height*scaleFactor)
-
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width*scaleFactor, image.height*scaleFactor);
     }
 
-    // Highlight row on hover
     function highlightRow(index) {
-        const highlight = dataset.highlights[index];//.find(data => data.index == index);
+        const highlight = dataset.highlights[index];
         if (highlight) {
             const { top, left, width, height } = highlight;
             const scaledTop = top * pixelFactorY;
             const scaledLeft = left * pixelFactorX;
             const scaledWidth = (width-left+1) * pixelFactorX;
             const scaledHeight = (height-top+1) * pixelFactorY;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear existing highlights
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width*scaleFactor, image.height*scaleFactor)
-            ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
-            ctx.fillRect(scaledLeft, scaledTop, scaledWidth, scaledHeight); // Draw the highlighted area
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; 
+            ctx.fillRect(scaledLeft, scaledTop, scaledWidth, scaledHeight);
         }
     }
 
-    // Clear the highlights when the mouse leaves the row
     function clearHighlight() {
-        drawHighlights(); // Redraw all the highlights
+        drawHighlights();
     }
 
-    // Initial resizing of the canvas
     window.addEventListener('resize', resizeCanvas);
 
-    // Load dataset and initialize the page
     window.addEventListener('load', () => {
         loadDataset();
         resizeCanvas();
