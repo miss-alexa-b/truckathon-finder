@@ -359,7 +359,7 @@
             const rowElement = document.createElement('div');
             rowElement.classList.add('row');
             rowElement.textContent = row.label;
-            rowElement.setAttribute('data-index', i);
+            rowElement.setAttribute('data-index', row.label);
             panel.appendChild(rowElement);
         });
 
@@ -403,7 +403,8 @@
     }
 
     function highlightRow(index) {
-        const highlight = dataset.highlights[index];
+        const highlight = dataset.highlights.find((obj) => obj.label === index);
+        
         if (highlight) {
             const { top, left, width, height } = highlight;
             const scaledTop = top * pixelFactorY;
