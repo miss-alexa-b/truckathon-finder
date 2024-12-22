@@ -29,14 +29,14 @@
             height: inherit;
         }
 
-        .panel span {
+        .panel span, .panel small {
             text-align: center;
             padding: 1rem;
         }
 
         .panel-internal {
             overflow-y: auto;
-            height: calc(100vh - 210px);
+            height: calc(100vh - 240px);
         }
 
         .row {
@@ -93,7 +93,8 @@
         <div class="panel-internal" id="panel">
         <!-- Rows will be dynamically inserted here -->
         </div>
-        <span><div>Items orders from top left to bottom right</div></span>
+        <span><div>Items are ordered from top left to bottom right</div></span>
+        <div style="text-align: center;"><small>By the canvas crew</small></div>
 </div>
 
     <!-- Canvas Area -->
