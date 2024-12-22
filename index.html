@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Truck-a-thon canvas searcher</title>
     <style>
-        body, html {
+        body,
+        html {
             margin: 0;
             padding: 0;
             height: 100%;
@@ -29,14 +31,15 @@
             height: inherit;
         }
 
-        .panel span, .panel small {
+        .panel span,
+        .panel small {
             text-align: center;
             padding: 1rem;
         }
 
         .panel-internal {
             overflow-y: auto;
-            height: calc(100vh - 240px);
+            height: calc(100vh - 280px);
         }
 
         .row {
@@ -78,358 +81,435 @@
             margin-bottom: 10px;
             width: -webkit-fill-available;
         }
-
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <!-- Left Panel -->
-    
-    <div class="panel" style="height: inherit;">
-        <span id="total-items"></span>
-        <div>
-        <input id="search" placeholder="Search..." type="text"></div>
-        <div class="panel-internal" id="panel">
-        <!-- Rows will be dynamically inserted here -->
+    <div class="container">
+        <!-- Left Panel -->
+
+        <div class="panel" style="height: inherit;">
+            <span id="total-items"></span>
+            <div>
+                <input id="search" placeholder="Search..." type="text">
+            </div>
+            <div class="panel-internal" id="panel">
+                <!-- Rows will be dynamically inserted here -->
+            </div>
+            <div>
+                <div>
+                    <input type="radio" id="highlights" value="highlights" onclick="changeMode(this)" name="item-list" checked>
+                    <label for="highlights">Highlights</label>
+                </div>
+                <div>
+                    <input type="radio" id="rats" value="rats" onclick="changeMode(this)" name="item-list">
+                    <label for="rats">Rats</label>
+                </div>
+            </div>
+            <span>
+                <div>
+                    Items are ordered from top left to bottom right
+                </div>
+            </span>
+            <div style="text-align: center;">
+                <small>
+                    By the canvas crew
+                </small>
+            </div>
         </div>
-        <span><div>Items are ordered from top left to bottom right</div></span>
-        <div style="text-align: center;"><small>By the canvas crew</small></div>
-</div>
 
-    <!-- Canvas Area -->
-    <div class="canvas-container">
-        <canvas id="canvas"></canvas>
+        <!-- Canvas Area -->
+        <div class="canvas-container">
+            <canvas id="canvas"></canvas>
+        </div>
     </div>
-</div>
 
-<script>
-    const get = (query, dom = document) => [...dom.querySelectorAll(query)];
-    const panel = document.getElementById('panel');
-    const total = document.getElementById('total-items');
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    let dataset = { "highlights": [
-        { "top": 0, "left": 0, "width": 13, "height": 12, "label": "CCTV" },
-        { "top": 0, "left": 0, "width": 29, "height": 29, "label": "Illumiati" },
-        { "left": 18, "top": 0, "width": 26, "height": 11, "label": "UFO" },
-        { "left": 23, "top": 3, "width": 43, "height": 43, "label": "Deadpool" },
-        { "left": 41, "top": 0, "width": 58, "height": 25, "label": "Joker 1" },
-        { "left": 41, "top": 10, "width": 82, "height": 45, "label": "Wolverine" },
-        { "left": 59, "top": 0, "width": 84, "height": 23, "label": "Joker 2" },
-        { "left": 80, "top": 0, "width": 91, "height": 11, "label": "Cursed jammy dodger" },
-        { "left": 91, "top": 0, "width": 107, "height": 16, "label": "Target" },
-        { "left": 19, "top": 31, "width": 25, "height": 37, "label": "Ultra ball" },
-        { "left": 10, "top": 23, "width": 39, "height": 29, "label": "Amongus" },
-        { "left": 272, "top": 156, "width": 301, "height": 193, "label": "Randy Random" },
-        { "left": 192, "top": 0, "width": 231, "height": 34, "label": "Europe" },
-        { "left": 229, "top": 0, "width": 255, "height": 25, "label": "America" },
-        { "left": 253, "top": 0, "width": 296, "height": 32, "label": "Asia & Oceania" },
-        { "left": 253, "top": 21, "width": 276, "height": 41, "label": "Africa" },
-        { "left": 191, "top": 33, "width": 219, "height": 62, "label": "Drama time" },
-        { "left": 216, "top": 36, "width": 230, "height": 49, "label": "Brofist" },
-        { "left": 232, "top": 26, "width": 252, "height": 44, "label": "Solar eclipse" },
-        { "left": 250, "top": 42, "width": 287, "height": 64, "label": "Bossman" },
-        { "left": 207, "top": 62, "width": 224, "height": 84, "label": "Peans" },
-        { "left": 221, "top": 52, "width": 254, "height": 81, "label": "Miku" },
-        { "left": 277, "top": 33, "width": 289, "height": 41, "label": "Sad egg by Mike" },
-        { "left": 81, "top": 0, "width": 182, "height": 44, "label": "Rat pride" },
-        { "left": 122, "top": 10, "width": 165, "height": 18, "label": "Clowns" },
-        { "left": 175, "top": 28, "width": 190, "height": 47, "label": "Illegal can" },
-        { "left": 102, "top": 45, "width": 173, "height": 51, "label": "Pacifist gaming" },
-        { "left": 165, "top": 0, "width": 193, "height": 33, "label": "Thank goodness you're here" },
-        { "left": 0, "top": 24, "width": 20, "height": 49, "label": "Mario w/ beer" },
-        { "left": 48, "top": 35, "width": 55, "height": 42, "label": "Pikachu" },
-        { "left": 330, "top": 0, "width": 381, "height": 8, "label": "Exit 8" },
-        { "left": 375, "top": 0, "width": 403, "height": 45, "label": "Owlbears" },
-        { "left": 340, "top": 9, "width": 380, "height": 73, "label": "Chaos marine" },
-        { "left": 386, "top": 39, "width": 403, "height": 64, "label": "Spriggan" },
-        { "left": 0, "top": 76, "width": 139, "height": 94, "label": "Wormge" },
-        { "left": 3, "top": 56, "width": 16, "height": 78, "label": "The guide" },
-        { "left": 20, "top": 66, "width": 35, "height": 79, "label": "Duck" },
-        { "left": 36, "top": 66, "width": 47, "height": 78, "label": "Rabbit" },
-        { "left": 27, "top": 51, "width": 43, "height": 67, "label": "Bird" },
-        { "left": 39, "top": 41, "width": 71, "height": 71, "label": "Aloo" },
-        { "left": 48, "top": 64, "width": 73, "height": 80, "label": "Cat" },
-        { "left": 73, "top": 54, "width": 89, "height": 78, "label": "Steiner" },
-        { "left": 84, "top": 65, "width": 113, "height": 82, "label": "Happy Turtle" },
-        { "left": 89, "top": 47, "width": 106, "height": 64, "label": "Bear" },
-        { "left": 107, "top": 63, "width": 136, "height": 82, "label": "Moodeng" },
-        { "left": 103, "top": 52, "width": 126, "height": 66, "label": "Rattata" },
-        { "left": 125, "top": 51, "width": 151, "height": 77, "label": "Wuk Lamat" },
-        { "left": 0, "top": 84, "width": 45, "height": 120, "label": "The Emporer & coins" },
-        { "left": 38, "top": 87, "width": 66, "height": 112, "label": "MadgeLate" },
-        { "left": 40, "top": 119, "width": 84, "height": 147, "label": "XallyToes" },
-        { "left": 55, "top": 109, "width": 69, "height": 124, "label": "SNIFFA" },
-        { "left": 0, "top": 116, "width": 18, "height": 145, "label": "Horde/Alliance" },
-        { "left": 0, "top": 113, "width": 58, "height": 147, "label": "Terraria gulag prisons" },
-        { "left": 62, "top": 91, "width": 116, "height": 121, "label": "Preachy bee lovely w/ wings of resolve" },
-        { "left": 99, "top": 101, "width": 120, "height": 120, "label": "Taco" },
-        { "left": 114, "top": 112, "width": 130, "height": 130, "label": "Nat 1 die" },
-        { "left": 124, "top": 96, "width": 140, "height": 125, "label": "Dressage Rosette" },
-        { "left": 76, "top": 126, "width": 140, "height": 155, "label": "Police flanitors" },
-        { "left": 139, "top": 107, "width": 293, "height": 155, "label": "Subathon truck" },
-        { "left": 142, "top": 109, "width": 252, "height": 135, "label": "Team trailer & Scratch" },
-        { "left": 164, "top": 98, "width": 175, "height": 106, "label": "Forbbiden bed screw" },
-        { "left": 180, "top": 81, "width": 186, "height": 95, "label": "Trashcan" },
-        { "left": 181, "top": 86, "width": 199, "height": 106, "label": "Cat 2" },
-        { "left": 199, "top": 81, "width": 252, "height": 106, "label": "Max and James w/ V-Bucks" },
-        { "left": 210, "top": 138, "width": 217, "height": 146, "label": "Mew under truck" },
-        { "left": 217, "top": 143, "width": 225, "height": 150, "label": "Stare" },
-        { "left": 239, "top": 113, "width": 258, "height": 151, "label": "Rats stealing tokens" },
-        { "left": 258, "top": 120, "width": 264, "height": 157, "label": "Clown running a red" },
-        { "left": 294, "top": 119, "width": 320, "height": 137, "label": "Fine for €240" },
-        { "left": 295, "top": 135, "width": 321, "height": 155, "label": "peepoPolice" },
-        { "left": 258, "top": 112, "width": 321, "height": 155, "label": "Fining a bad driver" },
-        { "left": 289, "top": 137, "width": 298, "height": 146, "label": "Hitting a stop sign" },
-        { "left": 311, "top": 70, "width": 349, "height": 111, "label": "Salamander" },
-        { "left": 343, "top": 90, "width": 358, "height": 115, "label": "King Tonberry" },
-        { "left": 362, "top": 74, "width": 396, "height": 105, "label": "Awareness ribbons" },
-        { "left": 3, "top": 146, "width": 16, "height": 154, "label": "Soup" },
-        { "left": 0, "top": 154, "width": 11, "height": 178, "label": "Christmas gnome 1" },
-        { "left": 44, "top": 158, "width": 52, "height": 173, "label": "Christmas gnome 2" },
-        { "left": 9, "top": 131, "width": 43, "height": 189, "label": "The collector" },
-        { "left": 41, "top": 147, "width": 71, "height": 157, "label": "PGHub" },
-        { "left": 56, "top": 159, "width": 70, "height": 171, "label": "Sylvanas" },
-        { "left": 38, "top": 171, "width": 90, "height": 201, "label": "RIP Warhammer summer" },
-        { "left": 68, "top": 156, "width": 100, "height": 175, "label": "Bolter" },
-        { "left": 84, "top": 179, "width": 107, "height": 201, "label": "WoW logo" },
-        { "left": 81, "top": 171, "width": 99, "height": 179, "label": "The Jailor (as a rat)" },
-        { "left": 2, "top": 181, "width": 33, "height": 211, "label": "Hochie breathing fire" },
-        { "left": 27, "top": 45, "width": 36, "height": 49, "label": "Rat Jams" },
-        { "left": 0, "top": 209, "width": 15, "height": 232, "label": "Batman" },
-        { "left": 21, "top": 200, "width": 44, "height": 223, "label": "Honeybee w/ bees" },
-        { "left": 40, "top": 202, "width": 52, "height": 215, "label": "FFXIV logo" },
-        { "left": 55, "top": 203, "width": 59, "height": 220, "label": "WoW quest marker" },
-        { "left": 61, "top": 203, "width": 67, "height": 213, "label": "The ghost of Gian Luka" },
-        { "left": 44, "top": 220, "width": 58, "height": 237, "label": "Duck detective" },
-        { "left": 58, "top": 215, "width": 72, "height": 237, "label": "Galuf" },
-        { "left": 0, "top": 237, "width": 14, "height": 250, "label": "GOTTEM" },
-        { "left": 11, "top": 225, "width": 31, "height": 247, "label": "Raynor's raiders" },
-        { "left": 29, "top": 229, "width": 48, "height": 251, "label": "Vault boy" },
-        { "left": 0, "top": 251, "width": 23, "height": 274, "label": "CPR symbol" },
-        { "left": 24, "top": 251, "width": 49, "height": 274, "label": "Hearthstone" },
-        { "left": 51, "top": 238, "width": 75, "height": 274, "label": "Excalibur (didn't want you to miss this one)" },
-        { "left": 69, "top": 201, "width": 97, "height": 222, "label": "Issac" },
-        { "left": 97, "top": 197, "width": 108, "height": 210, "label": "Startrek" },
-        { "left": 71, "top": 223, "width": 99, "height": 253, "label": "Little misfortune" },
-        { "left": 95, "top": 218, "width": 134, "height": 245, "label": "Yikes forever" },
-        { "left": 80, "top": 245, "width": 130, "height": 272, "label": "Scratch" },
-        { "left": 126, "top": 217, "width": 138, "height": 228, "label": "Josh's N7 mug" },
-        { "left": 135, "top": 217, "width": 154, "height": 237, "label": "Nessie" },
-        { "left": 127, "top": 238, "width": 157, "height": 274, "label": "Paddling pool" },
-        { "left": 101, "top": 155, "width": 141, "height": 187, "label": "Pisspriest" },
-        { "left": 141, "top": 153, "width": 175, "height": 177, "label": "Jorji" },
-        { "left": 176, "top": 168, "width": 185, "height": 188, "label": "Keith the cactus" },
-        { "left": 181, "top": 153, "width": 212, "height": 175, "label": "Left/Right gang" },
-        { "left": 108, "top": 188, "width": 139, "height": 216, "label": "Truck decorations" },
-        { "left": 139, "top": 176, "width": 177, "height": 205, "label": "Hawaii trip" },
-        { "left": 138, "top": 203, "width": 153, "height": 226, "label": "Kefka" },
-        { "left": 155, "top": 211, "width": 165, "height": 226, "label": "Gnome" },
-        { "left": 165, "top": 203, "width": 178, "height": 226, "label": "Jaina" },
-        { "left": 178, "top": 190, "width": 212, "height": 219, "label": "OrkHypers" },
-        { "left": 185, "top": 176, "width": 208, "height": 189, "label": "Red button" },
-        { "left": 208, "top": 170, "width": 229, "height": 199, "label": "Argenta 2" },
-        { "left": 219, "top": 182, "width": 249, "height": 202, "label": "Big daddy" },
-        { "left": 219, "top": 158, "width": 248, "height": 181, "label": "Watermelon beans bowl" },
-        { "left": 246, "top": 165, "width": 278, "height": 209, "label": "Beledar (changing colour)" },
-        { "left": 224, "top": 201, "width": 262, "height": 239, "label": "Rathalos" },
-        { "left": 262, "top": 209, "width": 286, "height": 240, "label": "Locked princess" },
-        { "left": 153, "top": 228, "width": 175, "height": 251, "label": "CKC trashbin" },
-        { "left": 172, "top": 220, "width": 198, "height": 251, "label": "Namazu" },
-        { "left": 197, "top": 217, "width": 234, "height": 253, "label": "BenDog" },
-        { "left": 234, "top": 239, "width": 246, "height": 252, "label": "SWS logo" },
-        { "left": 246, "top": 233, "width": 272, "height": 263, "label": "Darkest dungeon" },
-        { "left": 153, "top": 249, "width": 174, "height": 274, "label": "XIV Black mage" },
-        { "left": 172, "top": 249, "width": 188, "height": 274, "label": "White mage" },
-        { "left": 188, "top": 248, "width": 207, "height": 274, "label": "Red mage" },
-        { "left": 205, "top": 249, "width": 222, "height": 274, "label": "Black mage / Vivi" },
-        { "left": 222, "top": 253, "width": 271, "height": 274, "label": "Tankless & poor" },
-        { "left": 296, "top": 158, "width": 328, "height": 193, "label": "Ramen cup" },
-        { "left": 271, "top": 191, "width": 292, "height": 208, "label": "Pirate flag" },
-        { "left": 281, "top": 201, "width": 297, "height": 217, "label": "Edrem" },
-        { "left": 295, "top": 197, "width": 311, "height": 209, "label": "CHOS symbol" },
-        { "left": 311, "top": 194, "width": 322, "height": 216, "label": "Frankie the rat king (the first named rat)" },
-        { "left": 284, "top": 210, "width": 321, "height": 235, "label": "LOGIN" },
-        { "left": 294, "top": 231, "width": 307, "height": 248, "label": "Moogle" },
-        { "left": 310, "top": 226, "width": 325, "height": 243, "label": "Silky" },
-        { "left": 268, "top": 231, "width": 296, "height": 274, "label": "WH40k Inquisitor" },
-        { "left": 294, "top": 254, "width": 304, "height": 274, "label": "Clowns Employee of the Year: Chris" },
-        { "left": 301, "top": 240, "width": 324, "height": 274, "label": "Goobbue" },
-        { "left": 324, "top": 257, "width": 342, "height": 274, "label": "bla" },
-        { "left": 375, "top": 147, "width": 403, "height": 169, "label": "SPHEEEEEEN" },
-        { "left": 360, "top": 160, "width": 403, "height": 190, "label": "Sideboob army" },
-        { "left": 322, "top": 163, "width": 359, "height": 215, "label": "Floor inspector" },
-        { "left": 336, "top": 199, "width": 360, "height": 221, "label": "Great serpent of Ronka" },
-        { "left": 321, "top": 217, "width": 361, "height": 250, "label": "Yoshi-p" },
-        { "left": 360, "top": 191, "width": 399, "height": 215, "label": "Chat bubbles" },
-        { "left": 326, "top": 248, "width": 341, "height": 256, "label": "Cuphead" },
-        { "left": 357, "top": 211, "width": 377, "height": 225, "label": "Fat cat" },
-        { "left": 377, "top": 210, "width": 396, "height": 224, "label": "Bidoof" },
-        { "left": 390, "top": 211, "width": 403, "height": 235, "label": "Farfetch'd" },
-        { "left": 351, "top": 226, "width": 393, "height": 274, "label": "Titus" },
-        { "left": 342, "top": 259, "width": 354, "height": 274, "label": "Gnome" },
-        { "left": 393, "top": 248, "width": 403, "height": 262, "label": "Spiderman" },
-        { "left": 389, "top": 262, "width": 403, "height": 274, "label": "Bunny slime" },
-        { "left": 150, "top": 54, "width": 178, "height": 98, "label": "Alpaca" },
-        { "left": 163, "top": 46, "width": 188, "height": 78, "label": "Kupo" },
-        { "left": 188, "top": 65, "width": 200, "height": 85, "label": "Purple vase" },
-        { "left": 252, "top": 65, "width": 286, "height": 96, "label": "AYAYA" },
-        { "left": 287, "top": 75, "width": 310, "height": 85, "label": "1up" },
-        { "left": 255, "top": 96, "width": 269, "height": 110, "label": "Scholar" },
-        { "left": 270, "top": 96, "width": 281, "height": 112, "label": "Spock" },
-        { "left": 281, "top": 86, "width": 316, "height": 115, "label": "BexNews" },
-        { "left": 320, "top": 130, "width": 342, "height": 154, "label": "Turkish border control" },
-        { "left": 330, "top": 115, "width": 374, "height": 164, "label": "Dirt road examination" },
-        { "left": 335, "top": 149, "width": 343, "height": 156, "label": "Damaged car" },
-        { "left": 311, "top": 105, "width": 339, "height": 134, "label": "Selene" },
-        { "left": 347, "top": 119, "width": 364, "height": 148, "label": "Argenta 1" },
-        { "left": 337, "top": 120, "width": 347, "height": 147, "label": "Caution, spilt beans" },
-        { "left": 347, "top": 119, "width": 403, "height": 157, "label": "Spilt beans" },
-        { "left": 368, "top": 107, "width": 401, "height": 124, "label": "Cat on beans" },
-        { "left": 287, "top": 36, "width": 317, "height": 76, "label": "Pickle jar" },
-        { "left": 318, "top": 45, "width": 344, "height": 69, "label": "Angelic BenDog" },
-        { "left": 194, "top": 139, "width": 208, "height": 151, "label": "WideBoris" },
-        { "left": 293, "top": 0, "width": 331, "height": 11, "label": "Les-bee-ans" },
-        { "left": 298, "top": 10, "width": 320, "height": 31, "label": "Dry ass chicken sad-wich" },
-        { "left": 319, "top": 0, "width": 342, "height": 27, "label": "Little misfortune dog & branch" },
-        { "left": 314, "top": 22, "width": 342, "height": 48, "label": "Anya" },
-        { "left": 346, "top": 70, "width": 361, "height": 94, "label": "Parking fine" },
-        { "left": 290, "top": 189, "width": 306, "height": 200, "label": "Garfield" },
-        { "left": 247, "top": 145, "width": 261, "height": 171, "label": "Remy" },
-        { "left": 296, "top": 158, "width": 308, "height": 163, "label": "100 bits" },
-        { "left": 310, "top": 157, "width": 320, "height": 164, "label": "Goomba" },
-        { "left": 325, "top": 168, "width": 344, "height": 176, "label": "Peepo and his dog" },
-        { "left": 318, "top": 177, "width": 340, "height": 201, "label": "Alpha" },
-        { "left": 270, "top": 159, "width": 276, "height": 164, "label": "Finn" },
-        { "left": 238, "top": 178, "width": 252, "height": 192, "label": "Terraria sceptre" },
-        { "left": 186, "top": 146, "width": 189, "height": 156, "label": "Depression bollard" },
-    ]};
+    <script>
+        const get = (query, dom = document) => [...dom.querySelectorAll(query)];
+        const panel = document.getElementById('panel');
+        const total = document.getElementById('total-items');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let mode = "highlights"
+        let dataset = {
+            "highlights": [
+                { "top": 0, "left": 0, "width": 13, "height": 12, "label": "CCTV" },
+                { "top": 0, "left": 0, "width": 29, "height": 29, "label": "Illumiati" },
+                { "left": 18, "top": 0, "width": 26, "height": 11, "label": "UFO" },
+                { "left": 23, "top": 3, "width": 43, "height": 43, "label": "Deadpool" },
+                { "left": 41, "top": 0, "width": 58, "height": 25, "label": "Joker 1" },
+                { "left": 41, "top": 10, "width": 82, "height": 45, "label": "Wolverine" },
+                { "left": 59, "top": 0, "width": 84, "height": 23, "label": "Joker 2" },
+                { "left": 80, "top": 0, "width": 91, "height": 11, "label": "Cursed jammy dodger" },
+                { "left": 91, "top": 0, "width": 107, "height": 16, "label": "Target" },
+                { "left": 19, "top": 31, "width": 25, "height": 37, "label": "Ultra ball" },
+                { "left": 10, "top": 23, "width": 39, "height": 29, "label": "Amongus" },
+                { "left": 272, "top": 156, "width": 301, "height": 193, "label": "Randy Random" },
+                { "left": 192, "top": 0, "width": 231, "height": 34, "label": "Europe" },
+                { "left": 229, "top": 0, "width": 255, "height": 25, "label": "America" },
+                { "left": 253, "top": 0, "width": 296, "height": 32, "label": "Asia & Oceania" },
+                { "left": 253, "top": 21, "width": 276, "height": 41, "label": "Africa" },
+                { "left": 191, "top": 33, "width": 219, "height": 62, "label": "Drama time" },
+                { "left": 216, "top": 36, "width": 230, "height": 49, "label": "Brofist" },
+                { "left": 232, "top": 26, "width": 252, "height": 44, "label": "Solar eclipse" },
+                { "left": 250, "top": 42, "width": 287, "height": 64, "label": "Bossman" },
+                { "left": 207, "top": 62, "width": 224, "height": 84, "label": "Peans" },
+                { "left": 221, "top": 52, "width": 254, "height": 81, "label": "Miku" },
+                { "left": 277, "top": 33, "width": 289, "height": 41, "label": "Sad egg by Mike" },
+                { "left": 81, "top": 0, "width": 182, "height": 44, "label": "Rat pride" },
+                { "left": 122, "top": 10, "width": 165, "height": 18, "label": "Clowns" },
+                { "left": 175, "top": 28, "width": 190, "height": 47, "label": "Illegal can" },
+                { "left": 102, "top": 45, "width": 173, "height": 51, "label": "Pacifist gaming" },
+                { "left": 165, "top": 0, "width": 193, "height": 33, "label": "Thank goodness you're here" },
+                { "left": 0, "top": 24, "width": 20, "height": 49, "label": "Mario w/ beer" },
+                { "left": 48, "top": 35, "width": 55, "height": 42, "label": "Pikachu" },
+                { "left": 330, "top": 0, "width": 381, "height": 8, "label": "Exit 8" },
+                { "left": 375, "top": 0, "width": 403, "height": 45, "label": "Owlbears" },
+                { "left": 340, "top": 9, "width": 380, "height": 73, "label": "Chaos marine" },
+                { "left": 386, "top": 39, "width": 403, "height": 64, "label": "Spriggan" },
+                { "left": 0, "top": 76, "width": 139, "height": 94, "label": "Wormge" },
+                { "left": 3, "top": 56, "width": 16, "height": 78, "label": "The guide" },
+                { "left": 20, "top": 66, "width": 35, "height": 79, "label": "Duck" },
+                { "left": 36, "top": 66, "width": 47, "height": 78, "label": "Rabbit" },
+                { "left": 27, "top": 51, "width": 43, "height": 67, "label": "Bird" },
+                { "left": 39, "top": 41, "width": 71, "height": 71, "label": "Aloo" },
+                { "left": 48, "top": 64, "width": 73, "height": 80, "label": "Cat" },
+                { "left": 73, "top": 54, "width": 89, "height": 78, "label": "Steiner" },
+                { "left": 84, "top": 65, "width": 113, "height": 82, "label": "Happy Turtle" },
+                { "left": 89, "top": 47, "width": 106, "height": 64, "label": "Bear" },
+                { "left": 107, "top": 63, "width": 136, "height": 82, "label": "Moodeng" },
+                { "left": 103, "top": 52, "width": 126, "height": 66, "label": "Rattata" },
+                { "left": 125, "top": 51, "width": 151, "height": 77, "label": "Wuk Lamat" },
+                { "left": 0, "top": 84, "width": 45, "height": 120, "label": "The Emporer & coins" },
+                { "left": 38, "top": 87, "width": 66, "height": 112, "label": "MadgeLate" },
+                { "left": 40, "top": 119, "width": 84, "height": 147, "label": "XallyToes" },
+                { "left": 55, "top": 109, "width": 69, "height": 124, "label": "SNIFFA" },
+                { "left": 0, "top": 116, "width": 18, "height": 145, "label": "Horde/Alliance" },
+                { "left": 0, "top": 113, "width": 58, "height": 147, "label": "Terraria gulag prisons" },
+                { "left": 62, "top": 91, "width": 116, "height": 121, "label": "Preachy bee lovely w/ wings of resolve" },
+                { "left": 99, "top": 101, "width": 120, "height": 120, "label": "Taco" },
+                { "left": 114, "top": 112, "width": 130, "height": 130, "label": "Nat 1 die" },
+                { "left": 124, "top": 96, "width": 140, "height": 125, "label": "Dressage Rosette" },
+                { "left": 76, "top": 126, "width": 140, "height": 155, "label": "Police flanitors" },
+                { "left": 139, "top": 107, "width": 293, "height": 155, "label": "Subathon truck" },
+                { "left": 142, "top": 109, "width": 252, "height": 135, "label": "Team trailer & Scratch" },
+                { "left": 164, "top": 98, "width": 175, "height": 106, "label": "Forbbiden bed screw" },
+                { "left": 180, "top": 81, "width": 186, "height": 95, "label": "Trashcan" },
+                { "left": 181, "top": 86, "width": 199, "height": 106, "label": "Cat 2" },
+                { "left": 199, "top": 81, "width": 252, "height": 106, "label": "Max and James w/ V-Bucks" },
+                { "left": 210, "top": 138, "width": 217, "height": 146, "label": "Mew under truck" },
+                { "left": 217, "top": 143, "width": 225, "height": 150, "label": "Stare" },
+                { "left": 239, "top": 113, "width": 258, "height": 151, "label": "Rats stealing tokens" },
+                { "left": 258, "top": 120, "width": 264, "height": 157, "label": "Clown running a red" },
+                { "left": 294, "top": 119, "width": 320, "height": 137, "label": "Fine for €240" },
+                { "left": 295, "top": 135, "width": 321, "height": 155, "label": "peepoPolice" },
+                { "left": 258, "top": 112, "width": 321, "height": 155, "label": "Fining a bad driver" },
+                { "left": 289, "top": 137, "width": 298, "height": 146, "label": "Hitting a stop sign" },
+                { "left": 311, "top": 70, "width": 349, "height": 111, "label": "Salamander" },
+                { "left": 343, "top": 90, "width": 358, "height": 115, "label": "King Tonberry" },
+                { "left": 362, "top": 74, "width": 396, "height": 105, "label": "Awareness ribbons" },
+                { "left": 3, "top": 146, "width": 16, "height": 154, "label": "Soup" },
+                { "left": 0, "top": 154, "width": 11, "height": 178, "label": "Christmas gnome 1" },
+                { "left": 44, "top": 158, "width": 52, "height": 173, "label": "Christmas gnome 2" },
+                { "left": 9, "top": 131, "width": 43, "height": 189, "label": "The collector" },
+                { "left": 41, "top": 147, "width": 71, "height": 157, "label": "PGHub" },
+                { "left": 56, "top": 159, "width": 70, "height": 171, "label": "Sylvanas" },
+                { "left": 38, "top": 171, "width": 90, "height": 201, "label": "RIP Warhammer summer" },
+                { "left": 68, "top": 156, "width": 100, "height": 175, "label": "Bolter" },
+                { "left": 84, "top": 179, "width": 107, "height": 201, "label": "WoW logo" },
+                { "left": 81, "top": 171, "width": 99, "height": 179, "label": "The Jailor (as a rat)" },
+                { "left": 2, "top": 181, "width": 33, "height": 211, "label": "Hochie breathing fire" },
+                { "left": 27, "top": 45, "width": 36, "height": 49, "label": "Rat Jams" },
+                { "left": 0, "top": 209, "width": 15, "height": 232, "label": "Batman" },
+                { "left": 21, "top": 200, "width": 44, "height": 223, "label": "Honeybee w/ bees" },
+                { "left": 40, "top": 202, "width": 52, "height": 215, "label": "FFXIV logo" },
+                { "left": 55, "top": 203, "width": 59, "height": 220, "label": "WoW quest marker" },
+                { "left": 61, "top": 203, "width": 67, "height": 213, "label": "The ghost of Gian Luka" },
+                { "left": 44, "top": 220, "width": 58, "height": 237, "label": "Duck detective" },
+                { "left": 58, "top": 215, "width": 72, "height": 237, "label": "Galuf" },
+                { "left": 0, "top": 237, "width": 14, "height": 250, "label": "GOTTEM" },
+                { "left": 11, "top": 225, "width": 31, "height": 247, "label": "Raynor's raiders" },
+                { "left": 29, "top": 229, "width": 48, "height": 251, "label": "Vault boy" },
+                { "left": 0, "top": 251, "width": 23, "height": 274, "label": "CPR symbol" },
+                { "left": 24, "top": 251, "width": 49, "height": 274, "label": "Hearthstone" },
+                { "left": 51, "top": 238, "width": 75, "height": 274, "label": "Excalibur (didn't want you to miss this one)" },
+                { "left": 69, "top": 201, "width": 97, "height": 222, "label": "Issac" },
+                { "left": 97, "top": 197, "width": 108, "height": 210, "label": "Startrek" },
+                { "left": 71, "top": 223, "width": 99, "height": 253, "label": "Little misfortune" },
+                { "left": 95, "top": 218, "width": 134, "height": 245, "label": "Yikes forever" },
+                { "left": 80, "top": 245, "width": 130, "height": 272, "label": "Scratch" },
+                { "left": 126, "top": 217, "width": 138, "height": 228, "label": "Josh's N7 mug" },
+                { "left": 135, "top": 217, "width": 154, "height": 237, "label": "Nessie" },
+                { "left": 127, "top": 238, "width": 157, "height": 274, "label": "Paddling pool" },
+                { "left": 101, "top": 155, "width": 141, "height": 187, "label": "Pisspriest" },
+                { "left": 141, "top": 153, "width": 175, "height": 177, "label": "Jorji" },
+                { "left": 176, "top": 168, "width": 185, "height": 188, "label": "Keith the cactus" },
+                { "left": 181, "top": 153, "width": 212, "height": 175, "label": "Left/Right gang" },
+                { "left": 108, "top": 188, "width": 139, "height": 216, "label": "Truck decorations" },
+                { "left": 139, "top": 176, "width": 177, "height": 205, "label": "Hawaii trip" },
+                { "left": 138, "top": 203, "width": 153, "height": 226, "label": "Kefka" },
+                { "left": 155, "top": 211, "width": 165, "height": 226, "label": "Gnome 1" },
+                { "left": 165, "top": 203, "width": 178, "height": 226, "label": "Jaina" },
+                { "left": 178, "top": 190, "width": 212, "height": 219, "label": "OrkHypers" },
+                { "left": 185, "top": 176, "width": 208, "height": 189, "label": "Red button" },
+                { "left": 208, "top": 170, "width": 229, "height": 199, "label": "Argenta 2" },
+                { "left": 219, "top": 182, "width": 249, "height": 202, "label": "Big daddy" },
+                { "left": 219, "top": 158, "width": 248, "height": 181, "label": "Watermelon beans bowl" },
+                { "left": 246, "top": 165, "width": 278, "height": 209, "label": "Beledar (changing colour)" },
+                { "left": 224, "top": 201, "width": 262, "height": 239, "label": "Rathalos" },
+                { "left": 262, "top": 209, "width": 286, "height": 240, "label": "Locked princess" },
+                { "left": 153, "top": 228, "width": 175, "height": 251, "label": "CKC trashbin" },
+                { "left": 172, "top": 220, "width": 198, "height": 251, "label": "Namazu" },
+                { "left": 197, "top": 217, "width": 234, "height": 253, "label": "BenDog" },
+                { "left": 234, "top": 239, "width": 246, "height": 252, "label": "SWS logo" },
+                { "left": 246, "top": 233, "width": 272, "height": 263, "label": "Darkest dungeon" },
+                { "left": 153, "top": 249, "width": 174, "height": 274, "label": "XIV Black mage" },
+                { "left": 172, "top": 249, "width": 188, "height": 274, "label": "White mage" },
+                { "left": 188, "top": 248, "width": 207, "height": 274, "label": "Red mage" },
+                { "left": 205, "top": 249, "width": 222, "height": 274, "label": "Black mage / Vivi" },
+                { "left": 222, "top": 253, "width": 271, "height": 274, "label": "Tankless & poor" },
+                { "left": 296, "top": 158, "width": 328, "height": 193, "label": "Ramen cup" },
+                { "left": 271, "top": 191, "width": 292, "height": 208, "label": "Pirate flag" },
+                { "left": 281, "top": 201, "width": 297, "height": 217, "label": "Edrem" },
+                { "left": 295, "top": 197, "width": 311, "height": 209, "label": "CHOS symbol" },
+                { "left": 311, "top": 194, "width": 322, "height": 216, "label": "Frankie the rat king (the first named rat)" },
+                { "left": 284, "top": 210, "width": 321, "height": 235, "label": "LOGIN" },
+                { "left": 294, "top": 231, "width": 307, "height": 248, "label": "Moogle" },
+                { "left": 310, "top": 226, "width": 325, "height": 243, "label": "Silky" },
+                { "left": 268, "top": 231, "width": 296, "height": 274, "label": "WH40k Inquisitor" },
+                { "left": 294, "top": 254, "width": 304, "height": 274, "label": "Clowns Employee of the Year: Chris" },
+                { "left": 301, "top": 240, "width": 324, "height": 274, "label": "Goobbue" },
+                { "left": 324, "top": 257, "width": 342, "height": 274, "label": "bla" },
+                { "left": 375, "top": 147, "width": 403, "height": 169, "label": "SPHEEEEEEN" },
+                { "left": 360, "top": 160, "width": 403, "height": 190, "label": "Sideboob army" },
+                { "left": 322, "top": 163, "width": 359, "height": 215, "label": "Floor inspector" },
+                { "left": 336, "top": 199, "width": 360, "height": 221, "label": "Great serpent of Ronka" },
+                { "left": 321, "top": 217, "width": 361, "height": 250, "label": "Yoshi-p" },
+                { "left": 360, "top": 191, "width": 399, "height": 215, "label": "Chat bubbles" },
+                { "left": 326, "top": 248, "width": 341, "height": 256, "label": "Cuphead" },
+                { "left": 357, "top": 211, "width": 377, "height": 225, "label": "Fat cat" },
+                { "left": 377, "top": 210, "width": 396, "height": 224, "label": "Bidoof" },
+                { "left": 390, "top": 211, "width": 403, "height": 235, "label": "Farfetch'd" },
+                { "left": 351, "top": 226, "width": 393, "height": 274, "label": "Titus" },
+                { "left": 342, "top": 259, "width": 354, "height": 274, "label": "Gnome 2" },
+                { "left": 393, "top": 248, "width": 403, "height": 262, "label": "Spiderman" },
+                { "left": 389, "top": 262, "width": 403, "height": 274, "label": "Bunny slime" },
+                { "left": 150, "top": 54, "width": 178, "height": 98, "label": "Alpaca" },
+                { "left": 163, "top": 46, "width": 188, "height": 78, "label": "Kupo" },
+                { "left": 188, "top": 65, "width": 200, "height": 85, "label": "Purple vase" },
+                { "left": 252, "top": 65, "width": 286, "height": 96, "label": "AYAYA" },
+                { "left": 287, "top": 75, "width": 310, "height": 85, "label": "1up" },
+                { "left": 255, "top": 96, "width": 269, "height": 110, "label": "Scholar" },
+                { "left": 270, "top": 96, "width": 281, "height": 112, "label": "Spock" },
+                { "left": 281, "top": 86, "width": 316, "height": 115, "label": "BexNews" },
+                { "left": 320, "top": 130, "width": 342, "height": 154, "label": "Turkish border control" },
+                { "left": 330, "top": 115, "width": 374, "height": 164, "label": "Dirt road examination" },
+                { "left": 335, "top": 149, "width": 343, "height": 156, "label": "Damaged car" },
+                { "left": 311, "top": 105, "width": 339, "height": 134, "label": "Selene" },
+                { "left": 347, "top": 119, "width": 364, "height": 148, "label": "Argenta 1" },
+                { "left": 337, "top": 120, "width": 347, "height": 147, "label": "Caution, spilt beans" },
+                { "left": 347, "top": 119, "width": 403, "height": 157, "label": "Spilt beans" },
+                { "left": 368, "top": 107, "width": 401, "height": 124, "label": "Cat on beans" },
+                { "left": 287, "top": 36, "width": 317, "height": 76, "label": "Pickle jar" },
+                { "left": 318, "top": 45, "width": 344, "height": 69, "label": "Angelic BenDog" },
+                { "left": 194, "top": 139, "width": 208, "height": 151, "label": "WideBoris" },
+                { "left": 293, "top": 0, "width": 331, "height": 11, "label": "Les-bee-ans" },
+                { "left": 298, "top": 10, "width": 320, "height": 31, "label": "Dry ass chicken sad-wich" },
+                { "left": 319, "top": 0, "width": 342, "height": 27, "label": "Little misfortune dog & branch" },
+                { "left": 314, "top": 22, "width": 342, "height": 48, "label": "Anya" },
+                { "left": 346, "top": 70, "width": 361, "height": 94, "label": "Parking fine" },
+                { "left": 290, "top": 189, "width": 306, "height": 200, "label": "Garfield" },
+                { "left": 247, "top": 145, "width": 261, "height": 171, "label": "Remy" },
+                { "left": 296, "top": 158, "width": 308, "height": 163, "label": "100 bits" },
+                { "left": 310, "top": 157, "width": 320, "height": 164, "label": "Goomba" },
+                { "left": 325, "top": 168, "width": 344, "height": 176, "label": "Peepo and his dog" },
+                { "left": 318, "top": 177, "width": 340, "height": 201, "label": "Alpha" },
+                { "left": 270, "top": 159, "width": 276, "height": 164, "label": "Finn" },
+                { "left": 238, "top": 178, "width": 252, "height": 192, "label": "Terraria sceptre" },
+                { "left": 186, "top": 146, "width": 189, "height": 156, "label": "Depression bollard" },
+            ],
+            "rats": [
+                { "left": 83, "top": 26, "width": 95, "height": 44, "label": "Hans (in love with wolverine)" },
+                { "left": 94, "top": 20, "width": 116, "height": 41, "label": "Alex (non binary)" },
+                { "left": 121, "top": 25, "width": 132, "height": 43, "label": "Susie (ace)" },
+                { "left": 134, "top": 20, "width": 146, "height": 41, "label": "Yorbie (gay)" },
+                { "left": 144, "top": 22, "width": 160, "height": 44, "label": "Bean (lesbian)" },
+                { "left": 160, "top": 30, "width": 171, "height": 44, "label": "Brian (trans)" },
+                { "left": 115, "top": 3, "width": 121, "height": 22, "label": "Charlie the clown" },
+                { "left": 124, "top": 1, "width": 145, "height": 9, "label": "Sir Wigglebutt III" },
+                { "left": 152, "top": 1, "width": 163, "height": 9, "label": "Mike" },
+                { "left": 161, "top": 0, "width": 170, "height": 12, "label": "Jingles" },
+                { "left": 209, "top": 202, "width": 225, "height": 214, "label": "Herbert" },
+                { "left": 311, "top": 194, "width": 322, "height": 216, "label": "Frankie the rat king" },
+                { "left": 0, "top": 179, "width": 6, "height": 188, "label": "Sheila" },
+                { "left": 26, "top": 224, "width": 35, "height": 228, "label": "Kiki" },
+                { "left": 394, "top": 237, "width": 403, "height": 248, "label": "Gladys" },
+                { "left": 303, "top": 31, "width": 314, "height": 35, "label": "Pickle" },
+                { "left": 0, "top": 84, "width": 45, "height": 120, "label": "The Emporer" },
+                { "left": 43, "top": 113, "width": 53, "height": 122, "label": "Bonnie" },
+                { "left": 141, "top": 94, "width": 153, "height": 106, "label": "Ace" },
+                { "left": 17, "top": 58, "width": 24, "height": 63, "label": "Paula" },
+                { "left": 239, "top": 135, "width": 254, "height": 143, "label": "Bruno the heist rat" },
+                { "left": 251, "top": 122, "width": 258, "height": 132, "label": "Tutter the heist rat" },
+                { "left": 294, "top": 254, "width": 306, "height": 274, "label": "Clowns Employee of the Year: Chris" },
+                { "left": 226, "top": 162, "width": 232, "height": 168, "label": "Harry" },
+                { "left": 236, "top": 162, "width": 242, "height": 167, "label": "Terry" },
+                { "left": 139, "top": 159, "width": 148, "height": 171, "label": "Ratji (Jorji's closely related cousin)" },
+                { "left": 113, "top": 261, "width": 127, "height": 274, "label": "Stewert the pirate" },
+                { "left": 87, "top": 171, "width": 99, "height": 179, "label": "The Jailer" },
+                { "left": 189, "top": 264, "width": 200, "height": 274, "label": "Gretl, the party rat" },
+                { "left": 129, "top": 260, "width": 148, "height": 274, "label": "Tubbs" },
+                { "left": 247, "top": 145, "width": 261, "height": 171, "label": "Remy" },
+                { "left": 171, "top": 160, "width": 175, "height": 162, "label": "Cheddar" },
+                { "left": 219, "top": 248, "width": 233, "height": 259, "label": "Delilah" },
+                { "left": 180, "top": 81, "width": 186, "height": 86, "label": "Bloody Mary" },
+                { "left": 19, "top": 8, "width": 25, "height": 11, "label": "Ratmorph" },
+                { "left": 133, "top": 245, "width": 152, "height": 260, "label": "Princess" },
+                { "left": 29, "top": 42, "width": 35, "height": 44, "label": "Junior" },
+                { "left": 68, "top": 41, "width": 71, "height": 44, "label": "Senior" },
+                { "left": 0, "top": 50, "width": 7, "height": 55, "label": "Rathamat" },
+                { "left": 103, "top": 52, "width": 126, "height": 66, "label": "Rattata" },
+                { "left": 291, "top": 30, "width": 297, "height": 35, "label": "Mickey" },
+                { "left": 375, "top": 52, "width": 384, "height": 59, "label": "Ratageddon dark lord of cheese" },
+                { "left": 238, "top": 46, "width": 246, "height": 51, "label": "Riku" },
+                { "left": 310, "top": 226, "width": 325, "height": 244, "label": "Silky" },
+                { "left": 336, "top": 149, "width": 342, "height": 152, "label": "Nurtec" },
+                { "left": 77, "top": 43, "width": 86, "height": 55, "label": "Larry" },
+                { "left": 107, "top": 116, "width": 113, "height": 122, "label": "Jimothy" },
+                { "left": 0, "top": 191, "width": 6, "height": 196, "label": "Tunak" },
+                { "left": 3, "top": 207, "width": 6, "height": 210, "label": "Poor" },
+            ]
+        };
 
-    let image = new Image();
-    let scaleFactorX = 1, scaleFactorY=1, scaleFactor=1, pixelFactorX = 1, pixelFactorY = 1;
-    let pixelWidth = 404, pixelHeight = 275;
+        let image = new Image();
+        let scaleFactorX = 1, scaleFactorY = 1, scaleFactor = 1, pixelFactorX = 1, pixelFactorY = 1;
+        let pixelWidth = 404, pixelHeight = 275;
 
-    const searchInput = get("#search")[0];
-    searchInput.addEventListener("input", () => {
-        const searchQuery =  searchInput.value;
-        populatePanel(searchQuery)
-    });
+        const searchInput = get("#search")[0];
+        searchInput.addEventListener("input", () => {
+            const searchQuery = searchInput.value;
+            populatePanel(searchQuery)
+        });
 
-    function resizeCanvas() {
-        canvas.width = window.innerWidth - document.querySelector('.panel').offsetWidth;
-        canvas.height = window.innerHeight;
-        drawHighlights();
-        calculateScaleFactor();
-    }
-
-    async function loadDataset() {
-        try {
+        function changeMode(option) {
+            mode = option.value;
             populatePanel();
-
-            image.onload = () => {
-                calculateScaleFactor();
-                drawHighlights();
-            };
-            image.src = 'resources/canvas.png';
-        } catch (error) {
-            console.error('Error loading dataset:', error);
+            drawHighlights();
         }
-    }
 
-    function populatePanel(search = "") {
-        dataset.highlights.sort((a, b) => {
-            if (a.top !== b.top) {
-                return a.top - b.top;
+        function resizeCanvas() {
+            canvas.width = window.innerWidth - document.querySelector('.panel').offsetWidth;
+            canvas.height = window.innerHeight;
+            drawHighlights();
+            calculateScaleFactor();
+        }
+
+        async function loadDataset() {
+            try {
+                populatePanel();
+
+                image.onload = () => {
+                    calculateScaleFactor();
+                    drawHighlights();
+                };
+                image.src = 'resources/canvas.png';
+            } catch (error) {
+                console.error('Error loading dataset:', error);
             }
-            return a.left - b.left;
-        })
-
-        itemList = dataset.highlights
-
-        if (search.length > 0){
-            itemList = dataset.highlights.filter((record) => {
-                return record.label.toLowerCase().includes(search.toLowerCase())
-            })
         }
 
-        panel.innerHTML = "";
+        function populatePanel(search = "") {
+            dataset[mode].sort((a, b) => {
+                if (a.top !== b.top) {
+                    return a.top - b.top;
+                }
+                return a.left - b.left;
+            })
 
-        itemList.forEach((row, i) => {
-            const rowElement = document.createElement('div');
-            rowElement.classList.add('row');
-            rowElement.textContent = row.label;
-            rowElement.setAttribute('data-index', row.label);
-            panel.appendChild(rowElement);
-        });
+            itemList = dataset[mode]
 
-        const rows = document.querySelectorAll('.row');
-        rows.forEach(row => {
-            row.addEventListener('mouseenter', () => {
-                const index = row.getAttribute('data-index');
-                highlightRow(index);
+            if (search.length > 0) {
+                itemList = dataset[mode].filter((record) => {
+                    return record.label.toLowerCase().includes(search.toLowerCase())
+                })
+            }
+
+            panel.innerHTML = "";
+
+            itemList.forEach((row, i) => {
+                const rowElement = document.createElement('div');
+                rowElement.classList.add('row');
+                rowElement.textContent = row.label;
+                rowElement.setAttribute('data-index', row.label);
+                panel.appendChild(rowElement);
             });
-            row.addEventListener('mouseleave', () => {
-                clearHighlight();
-            });
-        });
 
-        
-        if (total.children.length === 0){
+            const rows = document.querySelectorAll('.row');
+            rows.forEach(row => {
+                row.addEventListener('mouseenter', () => {
+                    const index = row.getAttribute('data-index');
+                    highlightRow(index);
+                });
+                row.addEventListener('mouseleave', () => {
+                    clearHighlight();
+                });
+            });
+
+            total.innerHTML = '';
             const rowElement = document.createElement('div');
-            rowElement.textContent = `There are a total of ${dataset.highlights.length} items on the canvas`;
+            rowElement.textContent = `There are a total of ${dataset[mode].length} items on the canvas`;
             total.appendChild(rowElement);
         }
-    }
 
-    function calculateScaleFactor() {
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        const imageWidth = image.width;
-        const imageHeight = image.height;
-        
-        scaleFactorX = canvasWidth / imageWidth;
-        scaleFactorY = canvasHeight / imageHeight;
+        function calculateScaleFactor() {
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const imageWidth = image.width;
+            const imageHeight = image.height;
 
-        scaleFactor = scaleFactorX < scaleFactorY ? scaleFactorX : scaleFactorY;
-        
-        pixelFactorX = (imageWidth*scaleFactor) / pixelWidth;
-        pixelFactorY = (imageHeight*scaleFactor) / pixelHeight;
-    }
+            scaleFactorX = canvasWidth / imageWidth;
+            scaleFactorY = canvasHeight / imageHeight;
 
-    function drawHighlights() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width*scaleFactor, image.height*scaleFactor);
-    }
+            scaleFactor = scaleFactorX < scaleFactorY ? scaleFactorX : scaleFactorY;
 
-    function highlightRow(index) {
-        const highlight = dataset.highlights.find((obj) => obj.label === index);
-        
-        if (highlight) {
-            const { top, left, width, height } = highlight;
-            const scaledTop = top * pixelFactorY;
-            const scaledLeft = left * pixelFactorX;
-            const scaledWidth = (width-left+1) * pixelFactorX;
-            const scaledHeight = (height-top+1) * pixelFactorY;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width*scaleFactor, image.height*scaleFactor)
-            ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; 
-            ctx.fillRect(scaledLeft, scaledTop, scaledWidth, scaledHeight);
+            pixelFactorX = (imageWidth * scaleFactor) / pixelWidth;
+            pixelFactorY = (imageHeight * scaleFactor) / pixelHeight;
         }
-    }
 
-    function clearHighlight() {
-        drawHighlights();
-    }
+        function drawHighlights() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width * scaleFactor, image.height * scaleFactor);
+        }
 
-    window.addEventListener('resize', resizeCanvas);
+        function highlightRow(index) {
+            const highlight = dataset[mode].find((obj) => obj.label === index);
 
-    window.addEventListener('load', () => {
-        loadDataset();
-        resizeCanvas();
-    });
+            if (highlight) {
+                const { top, left, width, height } = highlight;
+                const scaledTop = top * pixelFactorY;
+                const scaledLeft = left * pixelFactorX;
+                const scaledWidth = (width - left + 1) * pixelFactorX;
+                const scaledHeight = (height - top + 1) * pixelFactorY;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width * scaleFactor, image.height * scaleFactor)
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+                ctx.fillRect(scaledLeft, scaledTop, scaledWidth, scaledHeight);
+            }
+        }
 
-</script>
+        function clearHighlight() {
+            drawHighlights();
+        }
 
+        window.addEventListener('resize', resizeCanvas);
+
+        window.addEventListener('load', () => {
+            loadDataset();
+            resizeCanvas();
+        });
+
+    </script>
 </body>
+
 </html>
